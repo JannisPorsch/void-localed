@@ -1,11 +1,12 @@
 #include <gio/gio.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #define MY_LAYOUT "de"
 #define MY_VARIANT ""
 #define MY_MODEL "pc105"
 #define MY_OPTIONS ""
+
+#define UNUSED(x) (void)(x)
 
 static const gchar introspection_xml[] =
 	"<node>"
@@ -25,6 +26,8 @@ static GDBusNodeInfo *introspection_data = NULL;
 static GVariant *handle_get_property(GDBusConnection *con, const gchar *sender, const gchar *obj, const gchar *iface, const gchar *property,
 		GError **err, gpointer user_data)
 {
+    UNUSED(con); UNUSED(sender); UNUSED(obj); UNUSED(iface); UNUSED(err); UNUSED(user_data);
+
 	if (!g_strcmp0(property, "X11Layout")) return g_variant_new_string(MY_LAYOUT);
 	if (!g_strcmp0(property, "X11Variant")) return g_variant_new_string(MY_VARIANT);
 	if (!g_strcmp0(property, "X11Model")) return g_variant_new_string(MY_MODEL);
@@ -37,6 +40,7 @@ static GVariant *handle_get_property(GDBusConnection *con, const gchar *sender, 
 static void handle_method_call(GDBusConnection *con, const gchar *sender, const gchar *obj, const gchar *iface, const gchar *method,
 		GVariant *params, GDBusMethodInvocation *invocation, gpointer user_data)
 {
+    UNUSED(con); UNUSED(sender); UNUSED(obj); UNUSED(iface); UNUSED(method); UNUSED(params); UNUSED(user_data);
 	g_dbus_method_invocation_return_value(invocation, NULL);
 }
 
@@ -49,23 +53,26 @@ static const GDBusInterfaceVTable iface_vtable =
 
 static void on_bus_acquired(GDBusConnection *con, const gchar *name, gpointer user_data)
 {
-	guint registr_id = g_dbus_connection_register_object(con, "/org/freedesktop/locale1", introspection_data->interfaces[0], &iface_vtable, NULL, NULL, NULL);
-	if (!registr_id) fprintf(stderr, "[!] ERROR: failed to register object\n");
+    UNUSED(name); UNUSED(user_data);
+	g_dbus_connection_register_object(con, "/org/freedesktop/locale1", introspection_data->interfaces[0], &iface_vtable, NULL, NULL, NULL);
 }
 
 static void on_name_acquired(GDBusConnection *con, const gchar *name, gpointer user_data)
 {
+    UNUSED(con); UNUSED(name); UNUSED(user_data);
     return;
 }
 
 
 static void on_name_lost(GDBusConnection *con, const gchar *name, gpointer user_data)
 {
+    UNUSED(con); UNUSED(name); UNUSED(user_data);
 	exit(1);
 }
 
 int main(int argc, char **argv)
 {
+    UNUSED(argc); UNUSED(argv);
 	GMainLoop *loop;
 	guint owner_id;
 
