@@ -1,6 +1,7 @@
 # void-localed
-Basic localed service implementation for void linux, used by gdm to set keymap.  
-The keymap is hard coded in main.c and there is no logging or error checks, use at own will/risk
+Limited localed service implementation for void linux, used by gdm to set the keymap.  
+The keymap is hard coded in main.c and should consist of values you would pass to setxkbmap.  
+There is no logging or error checks, so use at own will/risk
 
 # Build and install instructions
 dependencies: base-devel glib-devel  
