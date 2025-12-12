@@ -11,7 +11,7 @@ Standard installation using
 > make
 > sudo make install
 > sudo cp org.freedesktop.locale1.conf /etc/dbus-1/system.d/
-# create runit service that executes /usr/local/bin/void-localed
+# create runit service that executes /usr/local/bin/void-localed and reboot
 ```
 
 # Uninstall instructions
