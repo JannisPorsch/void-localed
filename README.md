@@ -1,5 +1,6 @@
 # void-localed
-Basic localed service implementation with hard-coded keymap for void linux, used by gdm to set keymap
+Basic localed service implementation for void linux, used by gdm to set keymap.
+The keymap is hard coded in main.c and there is no debugging, use at own will/risk
 
 # Build and install instructions
 Standard installation using
