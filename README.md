@@ -15,7 +15,7 @@ sudo cp org.freedesktop.locale1.conf /etc/dbus-1/system.d/
 # uninstall instructions
 Standard removal using
 ```
-make clean
 sudo make uninstall
 sudo rm /etc/dbus-1/system.d/org.freedesktop.locale1.conf
+# remove runit service
 ```
