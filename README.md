@@ -10,7 +10,7 @@ sudo cp org.freedesktop.locale1.conf /etc/dbus-1/system.d/
 ```
 
 # uninstall instructions
-Standard remove using
+Standard removal using
 ```
 make clean
 sudo make uninstall
