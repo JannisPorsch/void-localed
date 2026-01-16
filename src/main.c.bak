@@ -1,0 +1,180 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef __linux__
+#if defined(__GLIBC__)
+#include <gio/gio.h>  // GLib headers for glibc-based systems
+#else
+#include <dbus/dbus.h>  // libdbus for Musl-based systems
+#endif
+#endif
+
+#define MY_LAYOUT "de"
+#define MY_VARIANT ""
+#define MY_MODEL "pc105"
+#define MY_OPTIONS ""
+
+#define UNUSED(x) (void)(x)
+
+static const char introspection_xml[] =
+    "<node>"
+    "    <interface name='org.freedesktop.locale1'>"
+    "        <property type='s' name='X11Layout' access='read'/>"
+    "        <property type='s' name='X11Variant' access='read'/>"
+    "        <property type='s' name='X11Model' access='read'/>"
+    "        <property type='s' name='X11Options' access='read'/>"
+    "        <property type='as' name='Locale' access='read'/>"
+    "        <property type='s' name='VConsoleKeymap' access='read'/>"
+    "        <property type='s' name='VConsoleKeymapToggle' access='read'/>"
+    "    </interface>"
+    "</node>";
+
+#if defined(__GLIBC__)
+static GDBusNodeInfo *introspection_data = NULL;
+static GVariant *handle_get_property(GDBusConnection *con, const gchar *sender, const gchar *obj, const gchar *iface, const gchar *property,
+		GError **err, gpointer user_data)
+{
+    UNUSED(con); UNUSED(sender); UNUSED(obj); UNUSED(iface); UNUSED(err); UNUSED(user_data);
+
+	if (!g_strcmp0(property, "X11Layout")) return g_variant_new_string(MY_LAYOUT);
+	if (!g_strcmp0(property, "X11Variant")) return g_variant_new_string(MY_VARIANT);
+	if (!g_strcmp0(property, "X11Model")) return g_variant_new_string(MY_MODEL);
+	if (!g_strcmp0(property, "X11Options")) return g_variant_new_string(MY_OPTIONS);
+
+	if (!g_strcmp0(property, "Locale")) return g_variant_new_strv((const gchar * const []){NULL}, 0);
+	return g_variant_new_string("");
+}
+
+static void handle_method_call(GDBusConnection *con, const gchar *sender, const gchar *obj, const gchar *iface, const gchar *method,
+		GVariant *params, GDBusMethodInvocation *invocation, gpointer user_data)
+{
+    UNUSED(con); UNUSED(sender); UNUSED(obj); UNUSED(iface); UNUSED(method); UNUSED(params); UNUSED(user_data);
+	g_dbus_method_invocation_return_value(invocation, NULL);
+}
+
+static const GDBusInterfaceVTable iface_vtable =
+{
+	handle_method_call,
+	handle_get_property,
+	NULL
+};
+
+static void on_bus_acquired(GDBusConnection *con, const gchar *name, gpointer user_data)
+{
+    UNUSED(name); UNUSED(user_data);
+	g_dbus_connection_register_object(con, "/org/freedesktop/locale1", introspection_data->interfaces[0], &iface_vtable, NULL, NULL, NULL);
+}
+
+static void on_name_acquired(GDBusConnection *con, const gchar *name, gpointer user_data)
+{
+    UNUSED(con); UNUSED(name); UNUSED(user_data);
+    return;
+}
+
+static void on_name_lost(GDBusConnection *con, const gchar *name, gpointer user_data)
+{
+    UNUSED(con); UNUSED(name); UNUSED(user_data);
+	exit(1);
+}
+
+#endif // End __GLIBC__
+
+static void on_name_lost_libdbus(DBusConnection *conn, const char *name, void *user_data)
+{
+    UNUSED(conn); UNUSED(name); UNUSED(user_data);
+    printf("Lost bus name: %s\n", name);
+    exit(1);
+}
+
+static DBusHandlerResult handle_method_call_libdbus(DBusConnection *conn, DBusMessage *msg, void *user_data)
+{
+    UNUSED(conn); UNUSED(user_data);
+
+    const char *method = dbus_message_get_member(msg);
+
+    if (strcmp(method, "GetProperty") == 0)
+    {
+        const char *property = dbus_message_get_args(msg, NULL);
+        DBusMessage *reply = NULL;
+
+        if (strcmp(property, "X11Layout") == 0)
+            reply = dbus_message_new_method_return(msg, MY_LAYOUT);
+        else if (strcmp(property, "X11Variant") == 0)
+            reply = dbus_message_new_method_return(msg, MY_VARIANT);
+        else if (strcmp(property, "X11Model") == 0)
+            reply = dbus_message_new_method_return(msg, MY_MODEL);
+        else if (strcmp(property, "X11Options") == 0)
+            reply = dbus_message_new_method_return(msg, MY_OPTIONS);
+        else
+            reply = dbus_message_new_method_return(msg, "");
+
+        if (!dbus_connection_send(conn, reply, NULL))
+        {
+            fprintf(stderr, "Out of Memory!\n");
+            exit(1);
+        }
+
+        dbus_message_unref(reply);
+    }
+    return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+int main(int argc, char **argv)
+{
+    UNUSED(argc); UNUSED(argv);
+
+    #if defined(__GLIBC__) // GLib version for glibc-based systems
+        GMainLoop *loop;
+        guint owner_id;
+
+        introspection_data = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
+        if (!introspection_data) return 1;
+
+        owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM, "org.freedesktop.locale1", G_BUS_NAME_OWNER_FLAGS_NONE, on_bus_acquired, on_name_acquired, on_name_lost, NULL, NULL);
+
+        loop = g_main_loop_new(NULL, FALSE);
+        g_main_loop_run(loop);
+
+        g_bus_unown_name(owner_id);
+        g_dbus_node_info_unref(introspection_data);
+    #else // libdbus version for Musl-based systems
+        DBusError err;
+        DBusConnection *conn;
+        int ret;
+
+        dbus_error_init(&err);
+
+        conn = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+        if (dbus_error_is_set(&err))
+        {
+            fprintf(stderr, "Connection Error: %s\n", err.message);
+            dbus_error_free(&err);
+            return 1;
+        }
+
+        ret = dbus_bus_request_name(conn, "org.freedesktop.locale1", DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
+        if (dbus_error_is_set(&err))
+        {
+            fprintf(stderr, "Name Request Error: %s\n", err.message);
+            dbus_error_free(&err);
+            return 1;
+        }
+
+        dbus_connection_add_filter(conn, handle_method_call_libdbus, NULL, NULL);
+
+        while (dbus_connection_read_write(conn, -1))
+        {
+            DBusMessage *msg = dbus_connection_pop_message(conn);
+            if (msg)
+            {
+                dbus_message_unref(msg);
+            }
+        }
+
+        dbus_connection_unref(conn);
+    #endif
+
+    return 0;
+}
+
