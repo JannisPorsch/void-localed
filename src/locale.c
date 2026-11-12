@@ -1,4 +1,4 @@
-#include "locale1.h"
+#include "locale.h"
 #include "common.h"
 #include "vconsole.h"
 

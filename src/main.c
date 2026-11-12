@@ -1,5 +1,5 @@
 #include "common.h"
-#include "locale1.h"
+#include "locale.h"
 
 /*
  * main:
