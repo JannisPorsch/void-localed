@@ -1,6 +1,6 @@
-#ifndef VOID_LOCALED_COMMON_H
-#define VOID_LOCALED_COMMON_H
+#ifndef _COMMON_H_
+#define _COMMON_H_
 
 #define UNUSED(x) (void)(x)
 
-#endif /* VOID_LOCALED_COMMON_H */
+#endif /* _COMMON_H_ */

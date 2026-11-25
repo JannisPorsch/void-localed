@@ -1,8 +1,8 @@
-#ifndef __VCONSOLE_H__
-#define __VCONSOLE_H__
+#ifndef _VCONSOLE_H_
+#define _VCONSOLE_H_
 
 #include <gio/gio.h>
 
 GVariant *read_vconsole_value(const gchar *key, const gchar *fallback);
 
-#endif // !__VCONSOLE_H__
+#endif // !_VCONSOLE_H_
